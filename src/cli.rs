@@ -115,7 +115,7 @@ fn scan(mut o: Options) -> i32 {
         return 0;
     }
     let Some(path) = o.path.clone() else {
-        eprintln!("squirreldisk: the app shows no finished scan. Name a folder, e.g. squirreldisk scan .");
+        eprintln!("squirreldisk: no open SquirrelDisk window shows a finished scan. Name a folder, e.g. squirreldisk scan .");
         return 2;
     };
     let started = Instant::now();
