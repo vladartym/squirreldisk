@@ -7,7 +7,9 @@ use std::io::Read;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 
-pub use crate::GITHUB_REPO;
+/// This fork updates from its own releases: an upstream release would replace
+/// it and remove what the fork adds.
+const UPDATE_REPO: &str = "vladartym/squirreldisk";
 
 pub fn current_target() -> &'static str {
     if cfg!(all(target_os = "macos", target_arch = "aarch64")) {
@@ -117,7 +119,7 @@ impl Updater {
         *st.lock().unwrap() = State::Checking;
         std::thread::spawn(move || {
             let r = (|| -> Result<State, String> {
-                let url = format!("https://api.github.com/repos/{GITHUB_REPO}/releases/latest");
+                let url = format!("https://api.github.com/repos/{UPDATE_REPO}/releases/latest");
                 let mut resp = ureq::get(&url)
                     .header("User-Agent", concat!("SquirrelDisk/", env!("CARGO_PKG_VERSION")))
                     .header("Accept", "application/vnd.github+json")

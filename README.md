@@ -16,6 +16,15 @@
   <a href="https://discord.gg/Xp8QtMM65w"><img src="https://img.shields.io/badge/Discord-%235865F2.svg?style=flat-square&logo=discord&logoColor=white"></a>
 </p>
 
+> [!IMPORTANT]
+> **This fork** of [adileo/squirreldisk](https://github.com/adileo/squirreldisk) adds one thing: the command line reads the scan that the open app already has.
+>
+> - `squirreldisk scan <folder>` answers at once when one of the app's finished scans has the folder. Otherwise it scans the folder itself.
+> - `squirreldisk scan` with no folder prints the folder that the app window shows.
+> - `--json` gives the same items as JSON, for scripts and for AI agents such as Claude.
+>
+> The app gets its updates from the releases of this fork, so an upstream release does not replace it. Build it with Rust 1.95 or later.
+
 > [!NOTE]
 > **SquirrelDisk 2 is here.** After a few quiet years, SquirrelDisk is back, rebuilt from the ground up by its original author in native Rust: faster, better looking, and with many long-standing bugs fixed on every platform. Completely free, and actively maintained here in this repository.
 

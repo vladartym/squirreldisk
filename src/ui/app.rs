@@ -335,6 +335,9 @@ pub struct App {
     pub open_at_start: Option<PathBuf>,
     /// Installing the `squirreldisk` command from Settings: the outcome.
     pub cli_job: Option<Arc<Mutex<Option<Result<(), String>>>>>,
+    /// What `squirreldisk scan` can read from this window (see [`crate::ipc`]).
+    #[cfg(unix)]
+    pub scans: Arc<Mutex<crate::ipc::Scans>>,
 }
 
 /// The system font for `code`'s script. Fonts still installed are reused
@@ -440,6 +443,14 @@ impl App {
                 super::integration::install_cli_first_launch();
             }
         }
+        // `squirreldisk scan` asks this window before it scans by itself
+        #[cfg(unix)]
+        let scans = Arc::new(Mutex::new(crate::ipc::Scans::default()));
+        #[cfg(unix)]
+        if let Some(socket) = crate::ipc::socket_path() {
+            let s = scans.clone();
+            let _ = crate::ipc::serve(socket, move |request| crate::cli::answer(&s, request));
+        }
         App {
             themes: theme::all(),
             theme,
@@ -485,8 +496,21 @@ impl App {
             placing: if std::env::var("SQD_WINDOW").is_ok() { u8::MAX } else { 0 },
             font_scripts: 0,
             chrome: if cfg!(target_os = "macos") { (15.0, 68.0) } else { (22.0, 0.0) },
+            #[cfg(unix)]
+            scans,
             settings,
         }
+    }
+
+    /// Gives `squirreldisk scan` the finished scans and the folder on screen.
+    #[cfg(unix)]
+    fn publish_scans(&self) {
+        let mut s = self.scans.lock().unwrap();
+        s.done = self.sessions.iter().filter(|x| x.progress.is_done()).map(|x| x.tree.clone()).collect();
+        s.view = match self.screen {
+            Screen::Session(i) => self.sessions.get(i).filter(|x| x.progress.is_done()).map(|x| (x.tree.clone(), x.view.node)),
+            Screen::Home => None,
+        };
     }
 
     /// Feeds the local sponsor matcher with the startup disk fill level.
@@ -877,6 +901,8 @@ impl eframe::App for App {
         self.marks.clear();
         self.debug_hooks(&ctx);
         self.poll_sessions();
+        #[cfg(unix)]
+        self.publish_scans();
         self.fonts_for_names(&ctx);
         self.update_dock(&ctx);
         self.auto_update(&ctx);
